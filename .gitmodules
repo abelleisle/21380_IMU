@@ -1,6 +1,0 @@
-[submodule "ChibiOS"]
-	path = os
-	url = git://github.com/ChibiOS/ChibiOS
-[submodule "ChibiOS-Contrib"]
-	path = os
-	url = git://github.com/ChibiOS/ChibiOS-Contrib
