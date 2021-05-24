@@ -25,12 +25,12 @@ THD_FUNCTION(monitorThread, arg)
     (void)arg;
     while(true) {
         palClearLine(LINE_LED_GREEN);
-        chThdSleepMilliseconds(500);
+        chThdSleepMilliseconds(1000);
         palClearLine(LINE_LED_RED);
-        chThdSleepMilliseconds(500);
+        chThdSleepMilliseconds(1000);
         palSetLine(LINE_LED_GREEN);
-        chThdSleepMilliseconds(500);
+        chThdSleepMilliseconds(1000);
         palSetLine(LINE_LED_RED);
-        chThdSleepMilliseconds(500);
+        chThdSleepMilliseconds(1000);
     }
 }
