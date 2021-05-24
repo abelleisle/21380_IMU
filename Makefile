@@ -203,6 +203,9 @@ include arch/$(DEVICE)/flash.mk
 update:
 	git subtree pull --prefix os/ChibiOS https://github.com/ChibiOS/ChibiOS $(CHIBIOS_VERSION) --squash
 	git subtree pull --prefix os/ChibiOS-Contrib https://github.com/ChibiOS/ChibiOS-Contrib $(CHIBIOS_CONTRIB_VERSION) --squash
+
+database:
+	compiledb -o build/compile_commands.json -n make
 #
 # Custom rules
 ##############################################################################
