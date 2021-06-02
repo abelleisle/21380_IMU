@@ -12,3 +12,8 @@ IMU Module Operating System for Team 21380 @ RIT MSD
     * use q to quit
     * CTRL+c to stop the CPU
     * c to continue operation
+
+## hardware gitlab repo
+
+This is the repo that contains all the PCB info.  The board was made in KiCad.
+* https://gitlab.com/aa9720/rit_msd_pcbs
