@@ -91,6 +91,7 @@
 #define IOPORT1_SPI_MOSI       24U
 #define IOPORT1_SPI_MISO       23U
 #define IOPORT1_SPI_SS         22U
+#define IOPORT1_LED            25U
 
 /* Analog inpupt */
 #define IOPORT1_AIN0            2U
@@ -126,8 +127,6 @@
 #define IOPORT1_D12            24U
 #define IOPORT1_D13            25U
 
-#define IOPORT1_LED            25U
-
 
 /*
  * IO lines assignments.
@@ -149,14 +148,13 @@
 #define LINE_NFC2      PAL_LINE(IOPORT1, IOPORT1_NFC2)
 #define LINE_I2C_SCL   PAL_LINE(IOPORT1, IOPORT1_I2C_SCL)
 #define LINE_I2C_SDA   PAL_LINE(IOPORT1, IOPORT1_I2C_SDA)
+#define LINE_LED_RED   PAL_LINE(IOPORT1, IOPORT1_LED)
 
 /* Our definitions */
 #define LINE_SPI_SCK   PAL_LINE(IOPORT1, IOPORT1_SPI_SCK)
 #define LINE_SPI_MOSI  PAL_LINE(IOPORT1, IOPORT1_SPI_MOSI)
 #define LINE_SPI_MISO  PAL_LINE(IOPORT1, IOPORT1_SPI_MISO)
 #define LINE_SPI_SS    PAL_LINE(IOPORT1, IOPORT1_SPI_SS)
-
-#define LINE_LED_RED   PAL_LINE(IOPORT1, IOPORT1_LED)
 
 /* Analog line */
 #define LINE_AIN0      PAL_LINE(IOPORT1, IOPORT1_AIN0)

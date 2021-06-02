@@ -1,5 +1,6 @@
 #include "ch.h"
 #include "hal.h"
+#include "board.h"
 
 // Thread for LED status and wakeup hold
 __attribute__((section(".stacks")))
@@ -24,11 +25,7 @@ THD_FUNCTION(monitorThread, arg)
 {
     (void)arg;
     while(true) {
-        palClearLine(LINE_LED_GREEN);
-        chThdSleepMilliseconds(1000);
         palClearLine(LINE_LED_RED);
-        chThdSleepMilliseconds(1000);
-        palSetLine(LINE_LED_GREEN);
         chThdSleepMilliseconds(1000);
         palSetLine(LINE_LED_RED);
         chThdSleepMilliseconds(1000);

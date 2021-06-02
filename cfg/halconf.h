@@ -33,6 +33,12 @@
 
 #include "mcuconf.h"
 
+#if defined(ARCH_CONTRIB) || defined(__DOXYGEN__)
+#if !defined(HAL_USE_COMMUNITY) || defined(__DOXYGEN__)
+#define HAL_USE_COMMUNITY           TRUE
+#endif
+#endif
+
 /**
  * @brief   Enables the PAL subsystem.
  */
@@ -156,7 +162,7 @@
  * @brief   Enables the SIO subsystem.
  */
 #if !defined(HAL_USE_SIO) || defined(__DOXYGEN__)
-#define HAL_USE_SIO                         TRUE
+#define HAL_USE_SIO                         FALSE
 #endif
 
 /**
@@ -171,6 +177,13 @@
  */
 #if !defined(HAL_USE_TRNG) || defined(__DOXYGEN__)
 #define HAL_USE_TRNG                        FALSE
+#endif
+
+/**
+ * @brief   Enables the RNG subsystem.
+ */
+#if !defined(HAL_USE_RNG) || defined(__DOXYGEN__)
+#define HAL_USE_RNG                         FALSE
 #endif
 
 /**
@@ -218,7 +231,7 @@
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(PAL_USE_WAIT) || defined(__DOXYGEN__)
-#define PAL_USE_WAIT                        FALSE
+#define PAL_USE_WAIT                        TRUE
 #endif
 
 /*===========================================================================*/
@@ -544,6 +557,13 @@
  */
 #if !defined(WSPI_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
 #define WSPI_USE_MUTUAL_EXCLUSION           TRUE
+#endif
+
+/*===========================================================================*/
+/* QEI driver related settings.                                              */
+/*===========================================================================*/
+#if !defined(HAL_USE_QEI) || defined(__DOXYGEN__)
+#define HAL_USE_QEI                         FALSE
 #endif
 
 #endif /* HALCONF_H */

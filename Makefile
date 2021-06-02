@@ -1,10 +1,4 @@
-CHIBIOS_VERSION=master
-CHIBIOS_CONTRIB_VERSION=chibios-20.3.x
-
-CHIBIOS=os/ChibiOS
-CHIBIOS_CONTRIB=os/ChibiOS-Contrib
-
-DEVICE=STM32L476-DISCOVERY
+include env.mk
 
 include arch/$(DEVICE)/arch.mk
 
@@ -110,7 +104,11 @@ include $(CHIBIOS)/os/license/license.mk
 # Architecture dependant
 
 # HAL-OSAL files (optional).
-include $(CHIBIOS)/os/hal/hal.mk
+ifeq ($(ARCH_CONTRIB),)
+	include $(CHIBIOS_CONTRIB)/os/hal/hal.mk
+else
+	include $(CHIBIOS)/os/hal/hal.mk
+endif
 include $(CHIBIOS)/os/hal/osal/rt-nil/osal.mk
 
 # RTOS files (optional).
@@ -150,7 +148,7 @@ INCDIR = $(ARCH_CONFDIR) $(CONFDIR) $(ALLINC) $(TESTINC)
 CWARN = -Wall -Wextra -Wundef -Wstrict-prototypes
 
 # Define C++ warning options here.
-CPPWARN = -Wall -Wextra -Wundef
+CPPWARN = -Wall -Wextra -Wundef -pedantic-errors
 
 #
 # Project, target, sources and paths
@@ -201,8 +199,10 @@ include $(ARCH_RULESPATH)/rules.mk
 include arch/$(DEVICE)/flash.mk
 
 update:
-	git subtree pull --prefix os/ChibiOS https://github.com/ChibiOS/ChibiOS $(CHIBIOS_VERSION) --squash
-	git subtree pull --prefix os/ChibiOS-Contrib https://github.com/ChibiOS/ChibiOS-Contrib $(CHIBIOS_CONTRIB_VERSION) --squash
+	git subtree pull --prefix os/ChibiOS \
+		https://github.com/ChibiOS/ChibiOS $(CHIBIOS_VERSION) --squash
+	git subtree pull --prefix os/ChibiOS-Contrib \
+		https://github.com/ChibiOS/ChibiOS-Contrib $(CHIBIOS_CONTRIB_VERSION) --squash
 
 database:
 	compiledb -o build/compile_commands.json -n make
