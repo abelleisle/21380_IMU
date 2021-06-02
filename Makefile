@@ -104,7 +104,7 @@ include $(CHIBIOS)/os/license/license.mk
 # Architecture dependant
 
 # HAL-OSAL files (optional).
-ifeq ($(ARCH_CONTRIB),)
+ifdef ARCH_CONTRIB
 	include $(CHIBIOS_CONTRIB)/os/hal/hal.mk
 else
 	include $(CHIBIOS)/os/hal/hal.mk

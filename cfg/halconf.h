@@ -33,12 +33,6 @@
 
 #include "mcuconf.h"
 
-#if defined(ARCH_CONTRIB) || defined(__DOXYGEN__)
-#if !defined(HAL_USE_COMMUNITY) || defined(__DOXYGEN__)
-#define HAL_USE_COMMUNITY           TRUE
-#endif
-#endif
-
 /**
  * @brief   Enables the PAL subsystem.
  */
@@ -177,13 +171,6 @@
  */
 #if !defined(HAL_USE_TRNG) || defined(__DOXYGEN__)
 #define HAL_USE_TRNG                        FALSE
-#endif
-
-/**
- * @brief   Enables the RNG subsystem.
- */
-#if !defined(HAL_USE_RNG) || defined(__DOXYGEN__)
-#define HAL_USE_RNG                         FALSE
 #endif
 
 /**
@@ -559,12 +546,7 @@
 #define WSPI_USE_MUTUAL_EXCLUSION           TRUE
 #endif
 
-/*===========================================================================*/
-/* QEI driver related settings.                                              */
-/*===========================================================================*/
-#if !defined(HAL_USE_QEI) || defined(__DOXYGEN__)
-#define HAL_USE_QEI                         FALSE
-#endif
+#include "halconf_community.h"
 
 #endif /* HALCONF_H */
 
