@@ -1,0 +1,17 @@
+identifier: nrf52832_imu
+name: nRF52832-IMU
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 64
+flash: 512
+supported:
+  - nvs
+  - watchdog
+  - gpio
+  - spi
+  - pwm
+  - watchdog
