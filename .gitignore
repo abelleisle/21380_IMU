@@ -40,3 +40,4 @@ build/
 
 # PlatformIO
 .pio/
+.ccls

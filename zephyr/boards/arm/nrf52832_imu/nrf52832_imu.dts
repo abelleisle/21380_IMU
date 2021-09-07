@@ -10,14 +10,14 @@
 
 / {
 	model = "P21380 IMU nRF52832-IMU";
-	compatible = "nrf52832-imu";
+	/* compatible = "nordic,nrf52832-qfaa", "nordic,nrf52832"; */
 
 	chosen {
-		/* zephyr,console = &uart0; */
-		/* zephyr,shell-uart = &uart0; */
-		/* zephyr,uart-mcumgr = &uart0; */
-		/* zephyr,bt-mon-uart = &uart0; */
-		/* zephyr,bt-c2h-uart = &uart0; */
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,uart-mcumgr = &uart0;
+		zephyr,bt-mon-uart = &uart0;
+		zephyr,bt-c2h-uart = &uart0;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &slot0_partition;
@@ -57,15 +57,13 @@
 	status = "okay";
 };
 
-/* &uart0 { */
-/* 	status = "okay"; */
-/* 	compatible = "nordic,nrf-uart"; */
-/* 	current-speed = <115200>; */
-/* 	tx-pin = <20>; */
-/* 	rx-pin = <19>; */
-/* 	rts-pin = <5>; */
-/* 	cts-pin = <7>; */
-/* }; */
+&uart0 {
+	status = "okay";
+	compatible = "nordic,nrf-uart";
+	current-speed = <115200>;
+	tx-pin = <20>;
+	rx-pin = <19>;
+};
 
 /* &i2c0 { */
 /* 	compatible = "nordic,nrf-twi"; */
@@ -86,6 +84,31 @@
 	ch0-pin = <25>;
 	ch0-inverted;
 };
+
+&spi0 {
+    compatible = "nordic,nrf-spi";
+    status = "okay";
+    sck-pin = <15>;
+    mosi-pin = <16>;
+    miso-pin = <14>;
+};
+
+/* &lptmr1 { */
+/* 	interrupt-parent = <&intmux0_ch2>; */
+/* }; */
+/*  */
+/* &intmux0_ch2 { */
+/* 	status = "okay"; */
+/* }; */
+/*  */
+/* &intmux0_ch3 { */
+/* 	status = "okay"; */
+/* }; */
+/*  */
+/* &generic_fsk { */
+/* 	interrupt-parent = <&intmux0_ch3>; */
+/* 	status = "okay"; */
+/* }; */
 
 &flash0 {
 
