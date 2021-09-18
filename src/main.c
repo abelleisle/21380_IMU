@@ -19,6 +19,8 @@
 #include <devicetree.h>
 #include <drivers/gpio.h>
 
+#include <drivers/spi.h>
+
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
@@ -100,6 +102,11 @@ static void bt_ready(int err)
 
 #endif 
 
+static void spiTest()
+{
+    struct device *spi = device_get_binding("SPI_0");
+}
+
 void main(void)
 {
 	int err;
@@ -133,10 +140,10 @@ void main(void)
 		/* k_msleep(2000); */
         printk("LED On...\n");
 		gpio_pin_set(dev, PIN, false);
-		k_msleep(3000);
+		k_msleep(500);
         printk("LED Off...\n");
 		gpio_pin_set(dev, PIN, true);
-		k_msleep(1000);
+		k_msleep(500);
 	}
 
 	/* Initialize the Bluetooth Subsystem */
