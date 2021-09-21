@@ -20,7 +20,7 @@ properties:
     accel-hz:
       type: int
       required: false
-      default: 1000
+      default: 12
       description: |
         Default frequency of accelerometer. (Unit - Hz)
         Maps to ACCEL_ODR field in ACCEL_CONFIG0 setting
@@ -44,7 +44,7 @@ properties:
     gyro-hz:
       type: int
       required: false
-      default: 1000
+      default: 12
       description: |
         Default frequency of gyroscope. (Unit - Hz)
         Maps to GYRO_ODR field in GYRO_CONFIG0 setting

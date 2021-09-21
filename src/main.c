@@ -19,14 +19,14 @@
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/gpio.h>
-#include <drivers/spi.h>
+//#include <drivers/spi.h>
 
-#include <drivers/spi.h>
+//#include <drivers/spi.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
-#include <drivers/sensor.h>
+//#include <drivers/sensor.h>
 //#include "icm42688.h"
 
 #define LED0_NODE DT_ALIAS(led0)
@@ -47,8 +47,6 @@
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
-
-const struct device *imu;
 
 /*
  * Set Advertisement data. Based on the Eddystone specification:
@@ -109,16 +107,9 @@ static void bt_ready(int err)
 
 #endif 
 
-static void spiTest()
-{
-    struct device *spi = device_get_binding("SPI_0");
-}
-
 void main(void)
 {
 	int err;
-
-    imu = device_get_binding("ICM42688");
 
 	printk("Starting Beacon Demo\n");
     printk("Test output\n");
@@ -143,16 +134,16 @@ void main(void)
 		return;
 	}
 
-	while (0) {
+	while (1) {
 		/* gpio_pin_set(dev, PIN, (int)led_is_on); */
 		/* led_is_on = !led_is_on; */
 		/* k_msleep(2000); */
         printk("LED On...\n");
 		gpio_pin_set(dev, PIN, false);
-		k_msleep(500);
+		k_msleep(1000);
         printk("LED Off...\n");
 		gpio_pin_set(dev, PIN, true);
-		k_msleep(500);
+		k_msleep(1000);
 	}
 
 	/* Initialize the Bluetooth Subsystem */

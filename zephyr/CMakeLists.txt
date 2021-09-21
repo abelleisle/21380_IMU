@@ -4,7 +4,7 @@ set (BOARD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 list(APPEND ZEPHYR_EXTRA_MODULES
     ${CMAKE_CURRENT_SOURCE_DIR}/drivers/sensor/icm42688
-  )
+)
 
 cmake_minimum_required(VERSION 3.13.1)
 #include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)

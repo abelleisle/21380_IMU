@@ -23,3 +23,9 @@ jlink:
 monitor:
 	@echo Starting RTT Monitor...
 	$(TOOLS_DIR)/JLinkRTTClient
+
+gdbserver:
+	$(TOOLS_DIR)/JLinkGDBServer -singlerun -if SWD -select USB -device nRF52832_xxAA -port 2331
+
+gdb:
+	$(TOOLS_DIR)/../toolchain-gccarmnoneeabi/bin/arm-none-eabi-gdb .pio/build/nrf52832_imu/firmware.elf -iex "target extended-remote :2331"
