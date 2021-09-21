@@ -11,6 +11,7 @@
 #define NRF5_XTAL_VALUE        32000000
 #define NRF5_LFCLK_SOURCE      2
 
+#include <zephyr.h>
 #include <zephyr/types.h>
 #include <stddef.h>
 #include <sys/printk.h>
@@ -18,9 +19,13 @@
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/gpio.h>
+#include <drivers/spi.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
+
+#include <drivers/sensor.h>
+//#include "icm42688.h"
 
 #define LED0_NODE DT_ALIAS(led0)
 
@@ -40,6 +45,8 @@
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
+
+const struct device *imu;
 
 /*
  * Set Advertisement data. Based on the Eddystone specification:
@@ -104,6 +111,8 @@ void main(void)
 {
 	int err;
 
+    imu = device_get_binding("ICM42688");
+
 	printk("Starting Beacon Demo\n");
     printk("Test output\n");
 
@@ -127,7 +136,7 @@ void main(void)
 		return;
 	}
 
-	while (1) {
+	while (0) {
 		/* gpio_pin_set(dev, PIN, (int)led_is_on); */
 		/* led_is_on = !led_is_on; */
 		/* k_msleep(2000); */
