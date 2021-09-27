@@ -1,9 +1,6 @@
 #pragma once
 
-class BLE
+namespace BLE
 {
-public:
-    BLE();
-private:
-
-};
+    int init(void);
+}

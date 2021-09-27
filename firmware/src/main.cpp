@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <zephyr.h>
 
-#include <BLE.hpp>
+#include <bt/BLE.hpp>
 
 //#define IMU0_NODE DT_ALIAS(invensense,icm42688)
 /* #if DT_NODE_HAS_STATUS(IMU0_NODE, okay) */
@@ -165,6 +165,8 @@ void main(void) {
   }
 
   printf("Configured for triggered sampling.\n");
+
+  BLE::init();
 
   while (0) {
     printk("LED On...\n");
