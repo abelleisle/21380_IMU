@@ -99,6 +99,7 @@
 		reg = <0>;
 		label = "ICM42688";
 		int-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+        status = "okay";
 	};
 };
 

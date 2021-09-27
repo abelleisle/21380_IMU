@@ -12,6 +12,7 @@
 #include <zephyr.h>
 
 #include <bt/BLE.hpp>
+#include <imu/IMU.hpp>
 
 //#define IMU0_NODE DT_ALIAS(invensense,icm42688)
 /* #if DT_NODE_HAS_STATUS(IMU0_NODE, okay) */
