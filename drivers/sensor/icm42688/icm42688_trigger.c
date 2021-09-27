@@ -93,16 +93,11 @@ static void icm42688_thread_cb(const struct device *dev)
 				     GPIO_INT_EDGE_TO_ACTIVE);
 }
 
-static void icm42688_thread(int dev_ptr, int unused)
+static void icm42688_thread(struct icm42688_data *drv_data)
 {
-	const struct device *dev = INT_TO_POINTER(dev_ptr);
-	struct icm42688_data *drv_data = dev->data;
-
-	ARG_UNUSED(unused);
-
 	while (1) {
 		k_sem_take(&drv_data->gpio_sem, K_FOREVER);
-		icm42688_thread_cb(dev);
+        icm42688_thread_cb(drv_data->dev);
 	}
 }
 

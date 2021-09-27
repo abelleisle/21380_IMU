@@ -93,11 +93,11 @@
     miso-pin = <14>;
     cs-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
     /* label = "SPI_0"; */
-	icm42605@0 {
-		compatible = "invensense,icm42605";
+	icm42688@0 {
+		compatible = "invensense,icm42688";
 		spi-max-frequency = <24000000>;
 		reg = <0>;
-		label = "ICM42605";
+		label = "ICM42688";
 		int-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
 	};
 };
