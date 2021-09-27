@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <zephyr.h>
 
+#include <BLE.hpp>
+
 //#define IMU0_NODE DT_ALIAS(invensense,icm42688)
 /* #if DT_NODE_HAS_STATUS(IMU0_NODE, okay) */
 /* #define IMU0    DT_LABEL(DT_INST(0, icm42688)) */
