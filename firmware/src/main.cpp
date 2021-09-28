@@ -114,6 +114,7 @@ static void handle_icm42688_double_tap(const struct device *dev,
 void main(void) {
   printk("Starting IMU Demo...\r\n");
 
+  /*
   const char *const label = DT_LABEL(DT_INST(0, invensense_icm42688));
   const struct device *icm42688 = device_get_binding(label);
   const struct device *led = device_get_binding(LED0);
@@ -167,16 +168,22 @@ void main(void) {
 
   printf("Configured for triggered sampling.\n");
 
-  BLE::init();
+  */
 
-  while (0) {
-    printk("LED On...\n");
-    gpio_pin_set(led, PIN, false);
-    k_msleep(500);
-    printk("LED Off...\n");
-    gpio_pin_set(led, PIN, true);
-    k_msleep(500);
-  }
+    /* BLE::init(); */
+    IMU::init(DT_LABEL(DT_INST(0, invensense_icm42688)));
+        
+
+    /*
+    while (0) {
+        printk("LED On...\n");
+        gpio_pin_set(led, PIN, false);
+        k_msleep(500);
+        printk("LED Off...\n");
+        gpio_pin_set(led, PIN, true);
+        k_msleep(500);
+    }
+    */
 
 
   return;
