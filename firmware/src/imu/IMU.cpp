@@ -13,6 +13,7 @@
 namespace IMU
 {
     std::unique_ptr<const device> hw;
+    std::function<void()> cb;
 
     sensor_value temperature;
     sensor_value accel[3];
@@ -42,6 +43,11 @@ namespace IMU
         return 0;
     }
 
+    int setCallback(std::function<void()> _cb)
+    {
+        cb = _cb;
+    }
+
     int process_imu_data(const struct device *dev)
     {
         struct sensor_value tmp_temperature;
@@ -63,7 +69,6 @@ namespace IMU
             memcpy(accel, tmp_accel, 3*sizeof(sensor_value));
             memcpy(gyro, tmp_gyro, 3*sizeof(sensor_value));
 
-
             printf("[%s]:%g Cel\n"
                 "  accel %f %f %f m/s/s\n"
                 "  gyro  %f %f %f rad/s\n",
@@ -71,6 +76,9 @@ namespace IMU
                 sensor_value_to_double(&accel[0]), sensor_value_to_double(&accel[1]),
                 sensor_value_to_double(&accel[2]), sensor_value_to_double(&gyro[0]),
                 sensor_value_to_double(&gyro[1]), sensor_value_to_double(&gyro[2]));
+
+            // TODO: error handle this
+            cb();
         } else {
             printk("Sensor fetch failed.. Error: %d\n", err);
         }
