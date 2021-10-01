@@ -17,9 +17,10 @@
 void imu_callback(void)
 {
     IMU::imu_data* imu = IMU::raw();
-    printk("IMU Data: ");
-    imu->accel[2].print();
-    printk("IMU Raw: %d\t%d\n", imu->accel[2].whole, imu->accel[2].fractional);
+    /* printk("IMU Data: "); */
+    /* imu->accel[2].print(); */
+    /* printk("IMU Raw: %d\t%d\n", imu->accel[2].whole, imu->accel[2].fractional); */
+    BLE::setAdData(imu->raw, sizeof(imu->raw));
 }
 
 void main(void) {
