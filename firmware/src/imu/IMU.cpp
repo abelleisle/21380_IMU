@@ -26,14 +26,14 @@ namespace IMU
     imu_packed& imu_packed::operator= (sensor_value &v)
     {
         whole = static_cast<int8_t>(v.val1);
-        fractional = static_cast<int16_t>(v.val2 >> 8);
+        fractional = static_cast<int16_t>(v.val2 >> 5);
 
         return *this;
     }
 
     void imu_packed::print(void)
     {
-        float res = whole + (float)(fractional << 8)/1000000.0f;
+        float res = whole + (float)(fractional << 5)/1000000.0f;
         printf("%g\n", res);
     }
 
