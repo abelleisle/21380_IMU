@@ -66,3 +66,9 @@ you have built the application you can flash it by running:
 ```shell
 west flash
 ```
+
+# BLE Data
+
+- Sensor Service UUID
+  - `1E47B2EE-F208-4D20-BBC7-DAC31E042204`
+

@@ -7,8 +7,7 @@
 namespace IMU
 {
     struct imu_packed {
-        int8_t whole;
-        int16_t fractional;
+        int32_t value;
 
         void print(void);
         imu_packed& operator= (sensor_value &v);
@@ -17,8 +16,7 @@ namespace IMU
     struct imu_data {
         union {
             struct {
-                int16_t timestamp;
-                imu_packed temperature;
+                int32_t timestamp;
                 imu_packed accel[3];
                 imu_packed gyro[3];
             };

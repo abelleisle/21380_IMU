@@ -2,17 +2,39 @@
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
+#include <bluetooth/uuid.h>
+#include <bluetooth/gatt.h>
+#include <bluetooth/conn.h>
 #include <zephyr/types.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
+/*******************************************************************************
+*                              UUID DECLARATIONS                              *
+*******************************************************************************/
+
+/* Sensor data service */
+#define SENSOR_SRV_DECLARE BT_UUID_128_ENCODE(0x1E47B2EE, 0xF208, 0x4D20, 0xBBC7, 0xDAC31E042204)
+static struct bt_uuid_128 sensor_svc_uuid = BT_UUID_INIT_128(SENSOR_SRV_DECLARE);
+
+/* Sensor Attribute */
+#define SENSOR_ATT_DECLARE BT_UUID_128_ENCODE(0x46DA0BDF, 0x85DA, 0x48BF, 0xA9E2, 0xAED8F3DEA7D5)
+static struct bt_uuid_128 sensor_att_uuid = BT_UUID_INIT_128(SENSOR_ATT_DECLARE);
+
 namespace BLE
 {
-    static struct bt_data ad[2] = {
-        BT_DATA_BYTES(BT_DATA_UUID16_ALL, 0x12, 0x34),
-        BT_DATA(BT_DATA_SVC_DATA16, 0, 1)
+    /**************************************************************************
+    *                               VARIABLES                                *
+    **************************************************************************/
+    
+    /* Set Advertising data */
+    static struct bt_data ad[3] = {
+        BT_DATA_BYTES(BT_DATA_UUID128_ALL, SENSOR_SRV_DECLARE),
+        BT_DATA_BYTES(BT_DATA_UUID16_ALL, BT_UUID_16_ENCODE(BT_UUID_CTS_VAL)),
+        BT_DATA_BYTES(BT_DATA_SVC_DATA32, 0x00, 0x00, 0x00, 0x00)
     };
 
     /* Set Scan Response data */
@@ -20,21 +42,39 @@ namespace BLE
         BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
     };
 
+    uint8_t* data = NULL;
+
     static void ready_cb(int err);
+    static ssize_t write_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                            const void *buf, uint16_t len, uint16_t offset, uint8_t flags);
+    static ssize_t read_cb (struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                            void *buf, uint16_t len, uint16_t offset);
 
-    void setAdData(uint8_t *data, int size)
+    /**************************************************************************
+    *                          SERVICE DECLARATIONS                          *
+    **************************************************************************/
+
+    BT_GATT_SERVICE_DEFINE(sensor_svc, 
+        BT_GATT_PRIMARY_SERVICE(&sensor_svc_uuid),
+        BT_GATT_CHARACTERISTIC(&sensor_att_uuid.uuid,
+                               BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE | BT_GATT_CHRC_INDICATE, 
+                               BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
+                               read_cb, write_cb, data
+        )
+    );
+
+    /**************************************************************************
+    *                               FUNCTIONS                                *
+    **************************************************************************/
+
+    void setAdData(uint32_t data)
     {
-        ad[1] = BT_DATA(BT_DATA_SVC_DATA16, data, size);
-        bt_le_adv_stop();
-        int err;
-        /* Start advertising */
-        const struct bt_le_adv_param param = 
-            BT_LE_ADV_PARAM_INIT(BT_LE_ADV_OPT_USE_IDENTITY,
-                                 BT_GAP_ADV_FAST_INT_MIN_2,
-                                 BT_GAP_ADV_FAST_INT_MAX_2,
-                                 NULL);
+        ad[2] = bt_data{.type = BT_DATA_SVC_DATA32,
+                        .data_len = 4,
+                        .data = (uint8_t*)(&data)};
 
-        err = bt_le_adv_start(&param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+        /* Update advertising data */
+        int err = bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
         if (err) {
             printk("Advertising failed to start (err %d)\n", err);
             return;
@@ -99,5 +139,21 @@ namespace BLE
         bt_addr_le_to_str(&addr, addr_s, sizeof(addr_s));
 
         printk("Beacon started, advertising as %s\n", addr_s);
+    }
+
+    /**************************************************************************
+    *                               CALLBACKS                                *
+    **************************************************************************/
+
+    static ssize_t write_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                            const void *buf, uint16_t len, uint16_t offset, uint8_t flags)
+    {
+
+    }
+
+    static ssize_t read_cb (struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                            void *buf, uint16_t len, uint16_t offset)
+    {
+
     }
 }

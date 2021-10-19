@@ -14,16 +14,20 @@
 #include <bt/BLE.hpp>
 #include <imu/IMU.hpp>
 
+uint32_t counter = 0;
+
 void imu_callback(void)
 {
     IMU::imu_data* imu = IMU::raw();
-    /* printk("IMU Data: "); */
-    /* imu->accel[2].print(); */
-    /* printk("IMU Raw: %d\t%d\n", imu->accel[2].whole, imu->accel[2].fractional); */
-    BLE::setAdData(imu->raw, sizeof(imu->raw));
+    printk("IMU Data: ");
+    imu->accel[2].print();
+    printk("IMU Raw: %d\n", imu->accel[2].value);
+    printk("Counter: %d\n", counter);
+    BLE::setAdData(counter++);
 }
 
-void main(void) {
+void main(void)
+{
     BLE::init();
     IMU::init(DT_LABEL(DT_INST(0, invensense_icm42688)), imu_callback);
         

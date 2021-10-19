@@ -25,15 +25,19 @@ namespace IMU
 
     imu_packed& imu_packed::operator= (sensor_value &v)
     {
-        whole = static_cast<int8_t>(v.val1);
-        fractional = static_cast<int16_t>(v.val2 >> 5);
+        value = (v.val2 & 0xFFFFFF) << 8;
+        value |= (v.val1 & 0xFF);
 
         return *this;
     }
 
     void imu_packed::print(void)
     {
-        float res = whole + (float)(fractional << 5)/1000000.0f;
+        int8_t whole = value;
+        int32_t fraction = value >> 8;
+
+        // Create the actual output result
+        float res = (float)whole + (float)(fraction)/1000000.0f;
         printf("%g\n", res);
     }
 
@@ -88,7 +92,6 @@ namespace IMU
             memcpy(gyro, tmp_gyro, 3*sizeof(sensor_value));
 
             data.timestamp = k_uptime_get_32();
-            data.temperature = temperature;
             for (int i = 0; i < 3; i++) {
                 data.accel[i] = accel[i];
                 data.gyro[i] = gyro[i];

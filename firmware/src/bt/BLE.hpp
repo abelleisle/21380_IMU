@@ -5,5 +5,5 @@
 namespace BLE
 {
     int init(void);
-    void setAdData(uint8_t *data, int size);
+    void setAdData(uint32_t data);
 }
