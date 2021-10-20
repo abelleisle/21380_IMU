@@ -7,21 +7,22 @@
 namespace IMU
 {
     struct imu_packed {
-        int32_t value;
+        int32_t data;
 
-        void print(void);
+        float value(void);
         imu_packed& operator= (sensor_value &v);
     } __attribute__((packed));
 
     struct imu_data {
         union {
             struct {
-                int32_t timestamp;
+                uint32_t timestamp;
                 imu_packed accel[3];
                 imu_packed gyro[3];
             };
             uint8_t raw[2 + sizeof(imu_packed)*7];
         };
+        void print(void);
     } __attribute__((packed));
 
     int init(const char* const label, std::function<void()> callback);

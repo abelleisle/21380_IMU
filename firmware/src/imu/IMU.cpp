@@ -25,20 +25,34 @@ namespace IMU
 
     imu_packed& imu_packed::operator= (sensor_value &v)
     {
-        value = (v.val2 & 0xFFFFFF) << 8;
-        value |= (v.val1 & 0xFF);
+        data = (v.val2 & 0xFFFFFF) << 8;
+        data |= (v.val1 & 0xFF);
 
         return *this;
     }
 
-    void imu_packed::print(void)
+    float imu_packed::value(void)
     {
-        int8_t whole = value;
-        int32_t fraction = value >> 8;
+        int8_t whole = data;
+        int32_t fraction = data >> 8;
 
         // Create the actual output result
         float res = (float)whole + (float)(fraction)/1000000.0f;
-        printf("%g\n", res);
+
+        return res;
+    }
+
+    void imu_data::print(void)
+    {
+        uint32_t hour,min,sec,ms,ns;
+        ms = timestamp%1000;
+        sec = (timestamp/1000)%60;
+        min = (timestamp/60000)%60;
+        hour = (timestamp/3600000);
+        printf("%" PRIu32 "m %" PRIu32 "s %" PRIu32 "ms,", min, sec, ms);
+        printf("%g,%g,%g,%g,%g,%g\n",
+                accel[0].value(), accel[1].value(), accel[2].value(),
+                gyro[0].value(), gyro[1].value(), gyro[2].value());
     }
 
     int init(const char *const label, std::function<void()> callback)
