@@ -363,6 +363,8 @@
 #define BIT_ACCEL_FSR			0xE0
 #define BIT_ACCEL_ODR			0x0F
 
+#define BIT_ACCEL_ODR_32000     0x01
+#define BIT_ACCEL_ODR_16000	    0x02
 #define BIT_ACCEL_ODR_8000		0x03
 #define BIT_ACCEL_ODR_4000		0x04
 #define BIT_ACCEL_ODR_2000		0x05
@@ -380,6 +382,9 @@
 /* Bank0 REG_GYRO_CONFIG0 */
 #define BIT_GYRO_FSR			0xE0
 #define BIT_GYRO_ODR			0x0F
+
+#define BIT_GYRO_ODR_32000      0x01
+#define BIT_GYRO_ODR_16000      0x02
 #define BIT_GYRO_ODR_8000		0x03
 #define BIT_GYRO_ODR_4000		0x04
 #define BIT_GYRO_ODR_2000		0x05

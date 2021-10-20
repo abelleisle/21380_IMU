@@ -100,6 +100,8 @@
 		label = "ICM42688";
 		int-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
         status = "okay";
+        /* accel-hz = <25>; */
+        /* gyro-hz = <25>; */
 	};
 };
 

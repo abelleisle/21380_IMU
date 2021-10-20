@@ -25,6 +25,6 @@ namespace IMU
         void print(void);
     } __attribute__((packed));
 
-    int init(const char* const label, std::function<void()> callback);
+    int init(const char* const label, std::function<void(imu_data*)> callback);
     imu_data* raw();
 }

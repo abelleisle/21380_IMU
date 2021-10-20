@@ -14,7 +14,7 @@
 namespace IMU
 {
     std::unique_ptr<const device> hw;
-    std::function<void()> cb;
+    std::function<void(imu_data*)> cb;
 
     sensor_value temperature;
     sensor_value accel[3];
@@ -44,7 +44,7 @@ namespace IMU
 
     void imu_data::print(void)
     {
-        uint32_t hour,min,sec,ms,ns;
+        uint32_t hour,min,sec,ms;
         ms = timestamp%1000;
         sec = (timestamp/1000)%60;
         min = (timestamp/60000)%60;
@@ -55,7 +55,7 @@ namespace IMU
                 gyro[0].value(), gyro[1].value(), gyro[2].value());
     }
 
-    int init(const char *const label, std::function<void()> callback)
+    int init(const char *const label, std::function<void(imu_data*)> callback)
     {
         hw.reset(device_get_binding(label));
 
@@ -120,7 +120,7 @@ namespace IMU
             /*     sensor_value_to_double(&gyro[1]), sensor_value_to_double(&gyro[2])); */
 
             // TODO: error handle this
-            cb();
+            cb(&data);
         } else {
             printk("Sensor fetch failed.. Error: %d\n", err);
         }

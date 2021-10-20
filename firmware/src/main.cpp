@@ -24,7 +24,9 @@
 const unsigned int max_readings = 768;
 std::queue<IMU::imu_data> imuData;
 std::queue<IMU::imu_data> tmpData; /**< This is used while BLE transfer is occurring */
+
 bool running = false;
+bool streaming = false;
 
 ssize_t imu_data_send(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                     void *buf, uint16_t len, uint8_t offset)
@@ -47,11 +49,12 @@ ssize_t imu_data_send(struct bt_conn *conn, const struct bt_gatt_attr *attr,
     return 0;
 }
 
-void imu_callback(void)
+void imu_callback(IMU::imu_data* imu)
 {
-    if (!running) return; // Only do this stuff if the data is running
+    if (streaming)
+        imu->print();
 
-    IMU::imu_data* imu = IMU::raw();
+    if (!running) return; // Only do this stuff if the data is running
 
     if (!BLE::connected()) {
     // No BLE Connection
@@ -70,13 +73,11 @@ void imu_callback(void)
     }
 
     BLE::setAdData(imuData.size());
-
-    //imu->print();
 }
 
 void imu_dump_to_term(void)
 {
-    bool full = imuData.size() == max_readings;
+    bool full = (imuData.size() == max_readings);
 
     while(imuData.size()) {
         IMU::imu_data f = imuData.front();
@@ -86,7 +87,7 @@ void imu_dump_to_term(void)
     }
 
     if (full)
-        printf("WARNING: IMU Data queue was full, "
+        printk("WARNING: IMU Data queue was full, "
                "meaning some data points were lost.");
 
 }
@@ -102,6 +103,9 @@ void stateMachine(void)
     case sys::msg::SENSOR_CAPTURE_STOP:
         running = false;
         imu_dump_to_term();
+        break;
+    case sys::msg::SENSOR_CAPTURE_STREAM:
+        streaming = !streaming;
         break;
     case sys::msg::TIME_SYNC:
         break;

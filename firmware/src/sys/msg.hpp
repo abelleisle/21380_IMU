@@ -7,6 +7,7 @@ namespace sys { namespace msg {
 enum Tag {
     SENSOR_CAPTURE_START,
     SENSOR_CAPTURE_STOP,
+    SENSOR_CAPTURE_STREAM,
     TIME_SYNC,
     NO_MESSAGE
 };

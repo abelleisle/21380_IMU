@@ -175,7 +175,7 @@ namespace BLE
         }
         printk("Connection Information:\n");
         printk("* Role: ");
-        if (info.role == BT_CONN_ROLE_MASTER)
+        if (info.role == BT_CONN_ROLE_PERIPHERAL)
             printk("Master.\n");
         else
             printk("Slave.\n");

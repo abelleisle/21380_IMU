@@ -27,6 +27,15 @@ static int cmd_time(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
-SHELL_CMD_REGISTER(start, NULL, "Start IMU Recording", cmd_start);
-SHELL_CMD_REGISTER(stop,  NULL, "End IMU Recording",   cmd_stop);
-SHELL_CMD_REGISTER(time,  NULL, "Set System Time",     cmd_time);
+static int cmd_stream(const struct shell *shell, size_t argc, char **argv)
+{
+    printf("Data streaming toggled\n");
+    sys::msg::dispatch(sys::msg::SENSOR_CAPTURE_STREAM);
+
+    return 0;
+}
+
+SHELL_CMD_REGISTER(start,  NULL, "Start IMU Recording", cmd_start);
+SHELL_CMD_REGISTER(stop,   NULL, "End IMU Recording",   cmd_stop);
+SHELL_CMD_REGISTER(time,   NULL, "Set System Time",     cmd_time);
+SHELL_CMD_REGISTER(stream, NULL, "Stream IMU data",     cmd_stream);

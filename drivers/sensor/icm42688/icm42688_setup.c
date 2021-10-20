@@ -66,7 +66,11 @@ int icm42688_set_odr(const struct device *dev, uint16_t a_rate, uint16_t g_rate)
 
 	databuf &= ~BIT_ACCEL_ODR;
 
-	if (a_rate > 4000) {
+    if (a_rate > 16000) {
+		databuf |= BIT_ACCEL_ODR_32000;
+    } else if (a_rate > 8000) {
+		databuf |= BIT_ACCEL_ODR_16000;
+    } else if (a_rate > 4000) {
 		databuf |= BIT_ACCEL_ODR_8000;
 	} else if (a_rate > 2000) {
 		databuf |= BIT_ACCEL_ODR_4000;
@@ -110,7 +114,11 @@ int icm42688_set_odr(const struct device *dev, uint16_t a_rate, uint16_t g_rate)
 
 	databuf &= ~BIT_GYRO_ODR;
 
-	if (g_rate > 4000) {
+    if (g_rate > 16000) {
+		databuf |= BIT_GYRO_ODR_32000;
+    } else if (g_rate > 8000) {
+		databuf |= BIT_GYRO_ODR_16000;
+    } else if (g_rate > 4000) {
 		databuf |= BIT_GYRO_ODR_8000;
 	} else if (g_rate > 2000) {
 		databuf |= BIT_GYRO_ODR_4000;
