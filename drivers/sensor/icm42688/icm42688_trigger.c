@@ -134,8 +134,9 @@ int icm42688_init_interrupt(const struct device *dev)
 
 	k_thread_create(&drv_data->thread, drv_data->thread_stack,
 			CONFIG_ICM42688_THREAD_STACK_SIZE,
-			(k_thread_entry_t)icm42688_thread, drv_data,
-			0, NULL, K_PRIO_COOP(CONFIG_ICM42688_THREAD_PRIORITY),
+			(k_thread_entry_t)icm42688_thread,
+            drv_data, NULL, NULL,
+            K_PRIO_COOP(CONFIG_ICM42688_THREAD_PRIORITY),
 			0, K_NO_WAIT);
 
 	gpio_pin_interrupt_configure(drv_data->gpio, cfg->int_pin,

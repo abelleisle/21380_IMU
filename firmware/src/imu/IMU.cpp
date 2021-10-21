@@ -49,8 +49,8 @@ namespace IMU
         sec = (timestamp/1000)%60;
         min = (timestamp/60000)%60;
         hour = (timestamp/3600000);
-        printf("%" PRIu32 "m %" PRIu32 "s %" PRIu32 "ms,", min, sec, ms);
-        printf("%g,%g,%g,%g,%g,%g\n",
+        printf("%02" PRIu32 ":%02" PRIu32 ":%04" PRIu32 ",", min, sec, ms);
+        printf("% 07.5f,% 07.5f,% 07.5f,% 07.5f,% 07.5f,% 07.5f \n",
                 accel[0].value(), accel[1].value(), accel[2].value(),
                 gyro[0].value(), gyro[1].value(), gyro[2].value());
     }

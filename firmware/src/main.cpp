@@ -72,7 +72,7 @@ void imu_callback(IMU::imu_data* imu)
         tmpData.push(*imu);
     }
 
-    BLE::setAdData(imuData.size());
+    //BLE::setAdData(imuData.size());
 }
 
 void imu_dump_to_term(void)
@@ -116,7 +116,7 @@ void stateMachine(void)
 
 void main(void)
 {
-    BLE::init(imu_data_send);
+    //BLE::init(imu_data_send);
     IMU::init(DT_LABEL(DT_INST(0, invensense_icm42688)), imu_callback);
 
     /* Manage the main loop state */
