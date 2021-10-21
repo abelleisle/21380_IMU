@@ -1,0 +1,6 @@
+# Copyright (c) 2021 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+if SENSOR
+rsource "icm42688/Kconfig"
+endif # SENSOR

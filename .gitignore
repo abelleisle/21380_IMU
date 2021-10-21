@@ -37,3 +37,7 @@
 
 build/
 .dep/
+
+# PlatformIO
+.pio/
+.ccls
