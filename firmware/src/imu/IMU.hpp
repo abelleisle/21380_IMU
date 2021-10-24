@@ -25,6 +25,7 @@ namespace IMU
         void print(void);
     } __attribute__((packed));
 
+    int process_imu_data(const struct device *dev);
     int init(const char* const label, std::function<void(imu_data*)> callback);
     imu_data* raw();
 }

@@ -4,7 +4,6 @@
 static int cmd_start(const struct shell *shell, size_t argc, char **argv)
 {
     printf("Staring capture...\n");
-
     sys::msg::dispatch(sys::msg::SENSOR_CAPTURE_START);
 
     return 0;
@@ -12,8 +11,7 @@ static int cmd_start(const struct shell *shell, size_t argc, char **argv)
 
 static int cmd_stop(const struct shell *shell, size_t argc, char **argv)
 {
-    printf("Stopping capture... \n");
-
+    printf("Stopping capture...\n");
     sys::msg::dispatch(sys::msg::SENSOR_CAPTURE_STOP);
 
     return 0;

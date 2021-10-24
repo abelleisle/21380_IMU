@@ -28,6 +28,10 @@ std::queue<IMU::imu_data> tmpData; /**< This is used while BLE transfer is occur
 bool running = false;
 bool streaming = false;
 
+/*******************************************************************************
+*                                BT CALLBACKS                                 *
+*******************************************************************************/
+
 ssize_t imu_data_send(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                     void *buf, uint16_t len, uint8_t offset)
 {
@@ -48,6 +52,10 @@ ssize_t imu_data_send(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 
     return 0;
 }
+
+/*******************************************************************************
+*                                IMU FUNCTIONS                                *
+*******************************************************************************/
 
 void imu_callback(IMU::imu_data* imu)
 {
@@ -92,6 +100,11 @@ void imu_dump_to_term(void)
 
 }
 
+
+/*******************************************************************************
+*                                STATE MACHINE                                *
+*******************************************************************************/
+
 void stateMachine(void)
 {
     sys::msg::MsgData msg = sys::msg::receive();
@@ -114,6 +127,10 @@ void stateMachine(void)
     }
 }
 
+/*******************************************************************************
+*                                    MAIN                                     *
+*******************************************************************************/
+
 void main(void)
 {
     //BLE::init(imu_data_send);
@@ -121,9 +138,7 @@ void main(void)
 
     /* Manage the main loop state */
     while (1) {
-        k_sleep(K_SECONDS(1));
         stateMachine();
+        k_sleep(K_SECONDS(1));
     }
-
-  return;
 }

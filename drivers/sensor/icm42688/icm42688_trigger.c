@@ -71,7 +71,11 @@ static void icm42688_gpio_callback(const struct device *dev,
 	gpio_pin_interrupt_configure(drv_data->gpio, cfg->int_pin,
 				     GPIO_INT_DISABLE);
 
+#if defined(CONFIG_ICM42688_TRIGGER_OWN_THREAD)
 	k_sem_give(&drv_data->gpio_sem);
+#elif defined(CONFIG_ICM42688_TRIGGER_GLOBAL_THREAD)
+    k_work_submit(&drv_data->work);
+#endif
 }
 
 static void icm42688_thread_cb(const struct device *dev)
@@ -93,6 +97,8 @@ static void icm42688_thread_cb(const struct device *dev)
 				     GPIO_INT_EDGE_TO_ACTIVE);
 }
 
+#if defined(CONFIG_ICM42688_TRIGGER_OWN_THREAD)
+
 static void icm42688_thread(struct icm42688_data *drv_data)
 {
 	while (1) {
@@ -101,11 +107,36 @@ static void icm42688_thread(struct icm42688_data *drv_data)
 	}
 }
 
+#elif defined(CONFIG_ICM42688_TRIGGER_GLOBAL_THREAD)
+
+static void icm42688_work(struct k_work *work)
+{
+    struct icm42688_data *data = CONTAINER_OF(work, struct icm42688_data, work);
+
+    icm42688_thread_cb(data->dev);
+}
+
+#endif
+
 int icm42688_init_interrupt(const struct device *dev)
 {
 	struct icm42688_data *drv_data = dev->data;
 	const struct icm42688_config *cfg = dev->config;
 	int result = 0;
+
+#if defined(CONFIG_ICM42688_TRIGGER_OWN_THREAD)
+	k_sem_init(&drv_data->gpio_sem, 0, K_SEM_MAX_LIMIT);
+
+	k_thread_create(&drv_data->thread, drv_data->thread_stack,
+			CONFIG_ICM42688_THREAD_STACK_SIZE,
+			(k_thread_entry_t)icm42688_thread,
+            drv_data, NULL, NULL,
+            K_PRIO_COOP(CONFIG_ICM42688_THREAD_PRIORITY),
+			0, K_NO_WAIT);
+#elif defined(CONFIG_ICM42688_TRIGGER_GLOBAL_THREAD)
+    //drv_data->work.handler = icm42688_work;
+    k_work_init(&drv_data->work, icm42688_work);
+#endif
 
 	/* setup data ready gpio interrupt */
 	drv_data->gpio = device_get_binding(cfg->int_label);
@@ -129,15 +160,6 @@ int icm42688_init_interrupt(const struct device *dev)
 		LOG_ERR("Failed to set gpio callback");
 		return result;
 	}
-
-	k_sem_init(&drv_data->gpio_sem, 0, K_SEM_MAX_LIMIT);
-
-	k_thread_create(&drv_data->thread, drv_data->thread_stack,
-			CONFIG_ICM42688_THREAD_STACK_SIZE,
-			(k_thread_entry_t)icm42688_thread,
-            drv_data, NULL, NULL,
-            K_PRIO_COOP(CONFIG_ICM42688_THREAD_PRIORITY),
-			0, K_NO_WAIT);
 
 	gpio_pin_interrupt_configure(drv_data->gpio, cfg->int_pin,
 				     GPIO_INT_EDGE_TO_INACTIVE);

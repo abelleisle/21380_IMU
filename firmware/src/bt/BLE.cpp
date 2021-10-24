@@ -63,7 +63,7 @@ namespace BLE
         BT_GATT_CHARACTERISTIC(&sensor_att_uuid.uuid,
                                BT_GATT_CHRC_READ | BT_GATT_CHRC_INDICATE,
                                BT_GATT_PERM_READ,
-                               read_cb, NULL, 0
+                               read_cb, write_cb, 0
         )
     );
 

@@ -58,9 +58,13 @@ struct icm42688_data {
 	struct sensor_trigger double_tap_trigger;
 	sensor_trigger_handler_t double_tap_handler;
 
+#if defined(CONFIG_ICM42688_TRIGGER_OWN_THREAD)
 	K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_ICM42688_THREAD_STACK_SIZE);
 	struct k_thread thread;
 	struct k_sem gpio_sem;
+#elif defined(CONFIG_ICM42688_TRIGGER_GLOBAL_THREAD)
+    struct k_work work;
+#endif
 
 	struct spi_cs_control spi_cs;
 	struct spi_config spi_cfg;

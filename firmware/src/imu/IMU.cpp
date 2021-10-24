@@ -11,17 +11,38 @@
 
 #include <memory>
 
+#include <logging/log.h>
+LOG_MODULE_REGISTER(IMU_LOG, CONFIG_SENSOR_LOG_LEVEL);
+
+//#define IMU_TRIGGER_EN
+
 namespace IMU
 {
+
+/*******************************************************************************
+*                                    MISC                                     *
+*******************************************************************************/
+
     std::unique_ptr<const device> hw;
     std::function<void(imu_data*)> cb;
+    bool hasCallback = false;
+
+#if defined(IMU_TRIGGER_EN)
+    void handle_imu_data(const struct device *dev, struct sensor_trigger *trig);
+#else
+    K_KERNEL_STACK_MEMBER(imu_thread_stack, 2048);
+    struct k_thread imu_thread;
+    void handle_imu_data(void);
+#endif
+
+/*******************************************************************************
+*                                DATA HANDLING                                *
+*******************************************************************************/
 
     sensor_value temperature;
     sensor_value accel[3];
     sensor_value gyro[3];
     imu_data data;
-
-    void handle_imu_data(const struct device *dev, struct sensor_trigger *trig);
 
     imu_packed& imu_packed::operator= (sensor_value &v)
     {
@@ -55,6 +76,10 @@ namespace IMU
                 gyro[0].value(), gyro[1].value(), gyro[2].value());
     }
 
+/*******************************************************************************
+*                                  FUNCTIONS                                  *
+*******************************************************************************/
+
     int init(const char *const label, std::function<void(imu_data*)> callback)
     {
         hw.reset(device_get_binding(label));
@@ -64,6 +89,7 @@ namespace IMU
             return 1;
         }
 
+#if defined(IMU_TRIGGER_EN)
         static struct sensor_trigger data_trigger = {
             .type = SENSOR_TRIG_DATA_READY,
             .chan = SENSOR_CHAN_ALL
@@ -73,8 +99,16 @@ namespace IMU
             printk("Could not configure IMU trigger\n");
             return 1;
         }
+#else
+	k_thread_create(&imu_thread, imu_thread_stack, 2048,
+			(k_thread_entry_t)handle_imu_data,
+            hw->data, NULL, NULL,
+            K_PRIO_COOP(10),
+			0, K_NO_WAIT);
+#endif
 
         cb = callback;
+        hasCallback = true;
 
         return 0;
     }
@@ -83,6 +117,10 @@ namespace IMU
     {
         return &data;
     }
+
+/*******************************************************************************
+*                                  CALLBACKS                                  *
+*******************************************************************************/
 
     int process_imu_data(const struct device *dev)
     {
@@ -119,8 +157,11 @@ namespace IMU
             /*     sensor_value_to_double(&accel[2]), sensor_value_to_double(&gyro[0]), */
             /*     sensor_value_to_double(&gyro[1]), sensor_value_to_double(&gyro[2])); */
 
+            //data.print();
+
             // TODO: error handle this
-            cb(&data);
+            if (hasCallback)
+                cb(&data);
         } else {
             printk("Sensor fetch failed.. Error: %d\n", err);
         }
@@ -128,6 +169,7 @@ namespace IMU
         return err;
     }
 
+#if defined(IMU_TRIGGER_EN)
     void handle_imu_data(const struct device *dev, struct sensor_trigger *trig)
     {
         int err = process_imu_data(dev);
@@ -138,6 +180,16 @@ namespace IMU
             return;
         }
     }
+#else
+    void handle_imu_data(void)
+    {
+        while (1) {
+            process_imu_data(hw.get());
+
+            k_sleep(K_MSEC(40));
+        }
+    }
+#endif
 }
 
   /*
