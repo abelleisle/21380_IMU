@@ -2,12 +2,14 @@
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
+#include <bluetooth/conn.h>
 #include <bluetooth/uuid.h>
 #include <bluetooth/gatt.h>
-#include <bluetooth/conn.h>
 #include <zephyr/types.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#include <settings/settings.h>
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
@@ -67,10 +69,33 @@ namespace BLE
         )
     );
 
+    static void auth_passkey_display(struct bt_conn *conn, unsigned int passkey)
+    {
+        char addr[BT_ADDR_LE_STR_LEN];
+
+        bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+        printk("Passkey for %s: %06u\n", addr, passkey);
+    }
+
+    static void auth_cancel(struct bt_conn *conn)
+    {
+        char addr[BT_ADDR_LE_STR_LEN];
+
+        bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+        printk("Pairing cancelled: %s\n", addr);
+    }
+
+    static struct bt_conn_auth_cb auth_cb_display = {
+        .passkey_display = auth_passkey_display,
+        .passkey_entry = NULL,
+        .cancel = auth_cancel,
+    };
     
     static struct bt_conn_cb conn_callbacks = {
         .connected = connected_cb,
-        .disconnected = disconnected_cb
+        .disconnected = disconnected_cb,
     };
 
     /**************************************************************************
@@ -96,6 +121,7 @@ namespace BLE
         int err;
 
         bt_conn_cb_register(&conn_callbacks);
+        bt_conn_auth_cb_register(&auth_cb_display);
 
         err = bt_enable(ready_cb);
 
@@ -125,6 +151,10 @@ namespace BLE
         if (err) {
             printk("Bluetooth init failed (err %d)\n", err);
             return;
+        }
+
+        if (IS_ENABLED(CONFIG_SETTINGS)) {
+            settings_load();
         }
 
         printk("Bluetooth initialized\n");

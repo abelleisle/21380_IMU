@@ -33,6 +33,7 @@ namespace IMU
     K_KERNEL_STACK_MEMBER(imu_thread_stack, 2048);
     struct k_thread imu_thread;
     void handle_imu_data(void);
+    void blank_imu(const struct device *dev, struct sensor_trigger *trig){}
 #endif
 
 /*******************************************************************************
@@ -89,18 +90,23 @@ namespace IMU
             return 1;
         }
 
-#if defined(IMU_TRIGGER_EN)
         static struct sensor_trigger data_trigger = {
             .type = SENSOR_TRIG_DATA_READY,
             .chan = SENSOR_CHAN_ALL
         };
 
+#if defined(IMU_TRIGGER_EN)
         if (sensor_trigger_set(hw.get(), &data_trigger, handle_imu_data) < 0) {
             printk("Could not configure IMU trigger\n");
             return 1;
         }
 #else
-	k_thread_create(&imu_thread, imu_thread_stack, 2048,
+        if (sensor_trigger_set(hw.get(), &data_trigger, blank_imu) < 0) {
+            printk("Could not configure IMU trigger\n");
+            return 1;
+        }
+
+        k_thread_create(&imu_thread, imu_thread_stack, 2048,
 			(k_thread_entry_t)handle_imu_data,
             hw->data, NULL, NULL,
             K_PRIO_COOP(10),

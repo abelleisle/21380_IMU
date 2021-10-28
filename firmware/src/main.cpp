@@ -21,7 +21,7 @@
 #include <cstring>
 #include <queue>
 
-const unsigned int max_readings = 768;
+const unsigned int max_readings = 512;
 std::queue<IMU::imu_data> imuData;
 std::queue<IMU::imu_data> tmpData; /**< This is used while BLE transfer is occurring */
 
@@ -133,7 +133,7 @@ void stateMachine(void)
 
 void main(void)
 {
-    //BLE::init(imu_data_send);
+    BLE::init(imu_data_send);
     IMU::init(DT_LABEL(DT_INST(0, invensense_icm42688)), imu_callback);
 
     /* Manage the main loop state */
