@@ -10,13 +10,21 @@
 
 namespace BLE
 {
-    using RecvCallback = std::function<ssize_t(struct bt_conn*, const struct bt_gatt_attr*,
+    using RecvCallback       = std::function<ssize_t(struct bt_conn*, const struct bt_gatt_attr*,
                                                const void*, uint16_t, uint16_t uint8_t)>;
-
-    using SendCallback = std::function<ssize_t(struct bt_conn*, const struct bt_gatt_attr*,
+    using SendCallback       = std::function<ssize_t(struct bt_conn*, const struct bt_gatt_attr*,
                                                void*, uint16_t, uint8_t)>;
+    using ConnectCallback    = std::function<void(struct bt_conn*, uint8_t)>;
+    using DisconnectCallback = std::function<void(struct bt_conn*, uint8_t)>;
 
-    int init(SendCallback);
+    struct Callback_t {
+        SendCallback send             = nullptr;
+        RecvCallback recv             = nullptr;
+        ConnectCallback connect       = nullptr;
+        DisconnectCallback disconnect = nullptr;
+    };
+
+    int init(Callback_t*);
     void setAdData(uint32_t data);
 
     bool connected();

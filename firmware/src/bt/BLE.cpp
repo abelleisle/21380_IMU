@@ -2,12 +2,15 @@
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
+#include <bluetooth/hci_vs.h>
 #include <bluetooth/conn.h>
 #include <bluetooth/uuid.h>
 #include <bluetooth/gatt.h>
 #include <zephyr/types.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/util.h>
+#include <sys/byteorder.h>
 
 #include <settings/settings.h>
 
@@ -45,10 +48,13 @@ namespace BLE
         BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
     };
 
-    SendCallback send;
+    Callback_t *callbacks;
+
     static void ready_cb(int err);
+
     static void connected_cb(struct bt_conn *conn, uint8_t err);
     static void disconnected_cb(struct bt_conn *conn, uint8_t reason);
+
     static ssize_t write_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                             const void *buf, uint16_t len, uint16_t offset, uint8_t flags);
     static ssize_t read_cb (struct bt_conn *conn, const struct bt_gatt_attr *attr,
@@ -63,7 +69,8 @@ namespace BLE
     BT_GATT_SERVICE_DEFINE(sensor_svc, 
         BT_GATT_PRIMARY_SERVICE(&sensor_svc_uuid),
         BT_GATT_CHARACTERISTIC(&sensor_att_uuid.uuid,
-                               BT_GATT_CHRC_READ | BT_GATT_CHRC_INDICATE,
+                               //BT_GATT_CHRC_READ | BT_GATT_CHRC_INDICATE,
+                               BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
                                BT_GATT_PERM_READ,
                                read_cb, write_cb, 0
         )
@@ -102,6 +109,41 @@ namespace BLE
     *                               FUNCTIONS                                *
     **************************************************************************/
 
+    static void set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl)
+    {
+/*         struct bt_hci_cp_vs_write_tx_power_level *cp; */
+/*         struct bt_hci_rp_vs_write_tx_power_level *rp; */
+/*         struct net_buf *buf, *rsp = NULL; */
+/*         int err; */
+/*  */
+/*         buf = bt_hci_cmd_create(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, */
+/*                     sizeof(*cp)); */
+/*         if (!buf) { */
+/*             printk("Unable to allocate command buffer\n"); */
+/*             return; */
+/*         } */
+/*  */
+/*         cp = net_buf_add(buf, sizeof(*cp)); */
+/*         cp->handle = sys_cpu_to_le16(handle); */
+/*         cp->handle_type = handle_type; */
+/*         cp->tx_power_level = tx_pwr_lvl; */
+/*  */
+/*         err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, */
+/*                     buf, &rsp); */
+/*         if (err) { */
+/*             uint8_t reason = rsp ? */
+/*                 ((struct bt_hci_rp_vs_write_tx_power_level *) */
+/*                 rsp->data)->status : 0; */
+/*             printk("Set Tx power err: %d reason 0x%02x\n", err, reason); */
+/*             return; */
+/*         } */
+/*  */
+/*         rp = (void *)rsp->data; */
+/*         printk("Actual Tx Power: %d\n", rp->selected_tx_power); */
+/*  */
+/*         net_buf_unref(rsp); */
+    }
+
     void setAdData(uint32_t data)
     {
         ad[3] = bt_data{.type = BT_DATA_SVC_DATA32,
@@ -116,7 +158,7 @@ namespace BLE
         }
     }
 
-    int init(SendCallback send_cb)
+    int init(Callback_t *cb_struct)
     {
         int err;
 
@@ -130,7 +172,10 @@ namespace BLE
             return err;
         }
 
-        send = send_cb;
+        set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, 0, 0);
+        set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, 0, 0);
+
+        callbacks = cb_struct;
 
         return 0;
     }
@@ -239,6 +284,9 @@ namespace BLE
         }
     }
 
+    static struct bt_conn *default_conn;
+    static uint16_t default_conn_handle;
+
     static void connected_cb(struct bt_conn *conn, uint8_t err)
     {
         _connected = true;
@@ -248,23 +296,40 @@ namespace BLE
             printk("Connected\n");
             print_conn_info(conn);
         }
+
+        default_conn = bt_conn_ref(conn);
+		bt_hci_get_conn_handle(default_conn, &default_conn_handle);
+        set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_CONN,
+				     default_conn_handle,
+				     0);
+				     //BT_HCI_VS_LL_TX_POWER_LEVEL_NO_PREF);
+
+        if (callbacks->connect != nullptr)
+            callbacks->connect(conn, err);
     }
 
     static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
     {    
         printk("Disconnected (reason 0x%02x)\n", reason);
         _connected = false;
+
+        if (callbacks->disconnect != nullptr)
+            callbacks->disconnect(conn, reason);
     }
 
     static ssize_t write_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                             const void *buf, uint16_t len, uint16_t offset, uint8_t flags)
     {
+        if (callbacks->recv != nullptr)
+            return callbacks->recv(conn, attr, buf, len, offset);
         return 0;
     }
 
     static ssize_t read_cb (struct bt_conn *conn, const struct bt_gatt_attr *attr,
                             void *buf, uint16_t len, uint16_t offset)
     {
-        return send(conn, attr, buf, len, offset);
+        if (callbacks->send != nullptr)
+            return callbacks->send(conn, attr, buf, len, offset);
+        return 0;
     }
 }
