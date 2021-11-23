@@ -14,9 +14,12 @@ target_include_directories(app PRIVATE ${CMAKE_BINARY_DIR}/app/include src)
 
 target_sources(app PRIVATE
     src/main.cpp
+
     src/bt/BLE.cpp
     src/imu/IMU.cpp
     src/imu/IMU_virtual.cpp
+
     src/term/term.cpp
+
     src/sys/msg.cpp
 )

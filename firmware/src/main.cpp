@@ -17,13 +17,17 @@
 #include <term/term.hpp>
 #include <sys/msg.hpp>
 
+#include <lib/static_queue.h>
+
 #include <stdio.h>
 #include <cstring>
 #include <queue>
 
-const unsigned int max_readings = 512;
-std::queue<IMU::imu_data> imuData;
-std::queue<IMU::imu_data> tmpData; /**< This is used while BLE transfer is occurring */
+//const unsigned int max_readings = 512;
+//std::queue<IMU::imu_data> imuData;
+//std::queue<IMU::imu_data> tmpData; /**< This is used while BLE transfer is occurring */
+
+static_queue<IMU::imu_data, 512> imuData;
 
 bool running = false;
 bool streaming = false;
@@ -111,6 +115,7 @@ void imu_callback(IMU::imu_data* imu)
 
     if (!running) return; // Only do this stuff if the data is running
 
+    /*
     if (!BLE::connected()) {
     // No BLE Connection
         for (unsigned int i = 0; i < tmpData.size() && imuData.size() < max_readings; i++) {
@@ -126,13 +131,16 @@ void imu_callback(IMU::imu_data* imu)
     // BLE Connection - write to temp storage
         tmpData.push(*imu);
     }
+    */
+
+    imuData.push(*imu);
 
     //BLE::setAdData(imuData.size());
 }
 
 void imu_dump_to_term(void)
 {
-    bool full = (imuData.size() == max_readings);
+    bool full = (imuData.size() == imuData.max_size());
 
     while(imuData.size()) {
         IMU::imu_data f = imuData.front();
