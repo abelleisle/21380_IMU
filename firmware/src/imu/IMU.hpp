@@ -11,6 +11,7 @@ namespace IMU
 
         float value(void);
         imu_packed& operator= (sensor_value &v);
+        imu_packed& operator= (float f);
     } __attribute__((packed));
 
     struct imu_data {

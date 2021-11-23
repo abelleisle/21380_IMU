@@ -188,8 +188,10 @@ BLE::Callback_t BLE_Callbacks = {
 void main(void)
 {
     BLE::init(&BLE_Callbacks);
-    #if defined(DT_INST(0, invensense_icm42688))
+    #if defined(invensense_icm42688)
         IMU::init(DT_LABEL(DT_INST(0, invensense_icm42688)), imu_callback);
+    #else
+        IMU::init(nullptr, imu_callback);
     #endif
 
     /* Manage the main loop state */

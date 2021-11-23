@@ -34,6 +34,7 @@ namespace IMU
     struct k_thread imu_thread;
     void handle_imu_data(void);
     void blank_imu(const struct device *dev, struct sensor_trigger *trig){}
+    void handle_virtual_data(void);
 #endif
 
 /*******************************************************************************
@@ -47,8 +48,19 @@ namespace IMU
 
     imu_packed& imu_packed::operator= (sensor_value &v)
     {
-        data = (v.val2 & 0xFFFFFF) << 8;
+        data  = (v.val2 & 0xFFFFFF) << 8;
         data |= (v.val1 & 0xFF);
+
+        return *this;
+    }
+
+    imu_packed& imu_packed::operator= (float v)
+    {
+        int8_t whole = (int8_t)v;
+        int32_t frac = (v - (long)v) * 1000000.0f;
+
+        data  = (frac & 0xFFFFFF) << 8;
+        data |= (whole & 0xFF);
 
         return *this;
     }
@@ -83,6 +95,18 @@ namespace IMU
 
     int init(const char *const label, std::function<void(imu_data*)> callback)
     {
+        cb = callback;
+        hasCallback = true;
+
+        if (label == nullptr) {
+            k_thread_create(&imu_thread, imu_thread_stack, 2048,
+                (k_thread_entry_t)handle_virtual_data,
+                NULL, NULL, NULL,
+                K_PRIO_COOP(10),
+                0, K_NO_WAIT);
+            return 0;
+        }
+
         hw.reset(device_get_binding(label));
 
         if (!hw.get()) {
@@ -112,9 +136,6 @@ namespace IMU
             K_PRIO_COOP(10),
 			0, K_NO_WAIT);
 #endif
-
-        cb = callback;
-        hasCallback = true;
 
         return 0;
     }
@@ -154,16 +175,6 @@ namespace IMU
                 data.accel[i] = accel[i];
                 data.gyro[i] = gyro[i];
             }
-
-            /* printf("[%s]:%g Cel\n" */
-            /*     "  accel %f %f %f m/s/s\n" */
-            /*     "  gyro  %f %f %f rad/s\n", */
-            /*     "12:00", sensor_value_to_double(&temperature), */
-            /*     sensor_value_to_double(&accel[0]), sensor_value_to_double(&accel[1]), */
-            /*     sensor_value_to_double(&accel[2]), sensor_value_to_double(&gyro[0]), */
-            /*     sensor_value_to_double(&gyro[1]), sensor_value_to_double(&gyro[2])); */
-
-            //data.print();
 
             // TODO: error handle this
             if (hasCallback)
