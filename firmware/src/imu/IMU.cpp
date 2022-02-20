@@ -14,6 +14,13 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(IMU_LOG, CONFIG_SENSOR_LOG_LEVEL);
 
+/**
+ * Enable hardware IMU trigger.
+ * Uses GPIO trigger pins.
+ *
+ * Use this when there are either no GPIO trigger pins or the hardware triggers
+ * aren't working.
+ */
 //#define IMU_TRIGGER_EN
 
 namespace IMU
@@ -23,8 +30,9 @@ namespace IMU
 *                                    MISC                                     *
 *******************************************************************************/
 
-    std::unique_ptr<const device> hw;
-    std::function<void(imu_data*)> cb;
+    std::unique_ptr<const device> hw;  /**< HW device pointer */
+    std::function<void(imu_data*)> cb; /**< Callback executed whenever data is 
+                                            obtained from IMU */
     bool hasCallback = false;
 
 #if defined(IMU_TRIGGER_EN)
@@ -41,11 +49,16 @@ namespace IMU
 *                                DATA HANDLING                                *
 *******************************************************************************/
 
-    sensor_value temperature;
-    sensor_value accel[3];
-    sensor_value gyro[3];
-    imu_data data;
+    sensor_value temperature; /**< Last temperature reading */
+    sensor_value accel[3];    /**< Last accelerometer reading */
+    sensor_value gyro[3];     /**< Last gyroscope reading */
+    imu_data data;            /**< Packed IMU readings */
 
+    /**
+     * Packs a sensor_value into 32-bits
+     *
+     * @param[in] v sensor data to pack
+     */
     imu_packed& imu_packed::operator= (sensor_value &v)
     {
         data  = (v.val2 & 0xFFFFFF) << 8;
@@ -54,6 +67,11 @@ namespace IMU
         return *this;
     }
 
+    /**
+     * Sets the IMU data based on a float.
+     *
+     * @param[in] v float data to pack into 32-bits
+     */
     imu_packed& imu_packed::operator= (float v)
     {
         int8_t whole = (int8_t)v;
@@ -65,6 +83,11 @@ namespace IMU
         return *this;
     }
 
+    /**
+     * Get the float value of the imu data.
+     *
+     * @return The imu data interpolated as a float
+     */
     float imu_packed::value(void)
     {
         int8_t whole = data;
@@ -76,6 +99,9 @@ namespace IMU
         return res;
     }
 
+    /**
+     * Print the current value of the IMU data.
+     */
     void imu_data::print(void)
     {
         uint32_t hour,min,sec,ms;
@@ -93,6 +119,16 @@ namespace IMU
 *                                  FUNCTIONS                                  *
 *******************************************************************************/
 
+    /**
+     * Initializes the IMU.
+     *
+     * @param[in] label the kernel's label for the IMU. If this is 'nullptr' a
+     * virtual IMU will be created instead of a hardware IMU.
+     * @param[in] callback the callback function that will be executed when IMU
+     * data is recorded.
+     *
+     * @return Errors. 0 for success.
+     */
     int init(const char *const label, std::function<void(imu_data*)> callback)
     {
         cb = callback;
@@ -140,6 +176,13 @@ namespace IMU
         return 0;
     }
 
+    /**
+     * Return the last measured IMU data.
+     *
+     * @warning doesn't guarantee that data has a value.
+     *
+     * @return The last piece of IMU data recorded.
+     */
     imu_data* raw()
     {
         return &data;
@@ -149,6 +192,13 @@ namespace IMU
 *                                  CALLBACKS                                  *
 *******************************************************************************/
 
+    /**
+     * Reads all IMU data from hardware.
+     * If any errors exist, stop and return.
+     *
+     * @param[in] dev the hardware IMU device being used.
+     * @return The errors that occurred. 0 for success.
+     */
     int process_imu_data(const struct device *dev)
     {
         struct sensor_value tmp_temperature;
@@ -187,6 +237,12 @@ namespace IMU
     }
 
 #if defined(IMU_TRIGGER_EN)
+    /**
+     * Hardware trigger callback.
+     *
+     * @param[in] dev the hardware IMU that was triggered
+     * @param[in] trig the IMU trigger settings
+     */
     void handle_imu_data(const struct device *dev, struct sensor_trigger *trig)
     {
         int err = process_imu_data(dev);
@@ -198,6 +254,10 @@ namespace IMU
         }
     }
 #else
+    /**
+     * Software trigger callback.
+     * Run in a separate thread from the main processing thread.
+     */
     void handle_imu_data(void)
     {
         while (1) {
@@ -208,59 +268,3 @@ namespace IMU
     }
 #endif
 }
-
-  /*
-  const char *const label = DT_LABEL(DT_INST(0, invensense_icm42688));
-  const struct device *icm42688 = device_get_binding(label);
-  const struct device *led = device_get_binding(LED0);
-
-  if (led == NULL) {
-    printk("Failed to initialize diagnostic LED");
-    return;
-  }
-
-  int ret = gpio_pin_configure(led, PIN, GPIO_OUTPUT_ACTIVE | FLAGS);
-  if (ret < 0) {
-    printk("Could not configure LED");
-    return;
-  }
-
-  if (!icm42688) {
-    printf("Failed to find sensor %s\n", "ICM42688");
-    return;
-  }
-
-  tap_trigger = (struct sensor_trigger){
-      .type = SENSOR_TRIG_TAP,
-      .chan = SENSOR_CHAN_ALL,
-  };
-
-  if (sensor_trigger_set(icm42688, &tap_trigger, handle_icm42688_tap) < 0) {
-    printf("Cannot configure tap trigger!!!\n");
-    return;
-  }
-
-  double_tap_trigger = (struct sensor_trigger){
-      .type = SENSOR_TRIG_DOUBLE_TAP,
-      .chan = SENSOR_CHAN_ALL,
-  };
-
-  if (sensor_trigger_set(icm42688, &double_tap_trigger,
-                         handle_icm42688_double_tap) < 0) {
-    printf("Cannot configure double tap trigger!!!\n");
-    return;
-  }
-
-  data_trigger = (struct sensor_trigger){
-      .type = SENSOR_TRIG_DATA_READY,
-      .chan = SENSOR_CHAN_ALL,
-  };
-
-  if (sensor_trigger_set(icm42688, &data_trigger, handle_icm42688_drdy) < 0) {
-    printf("Cannot configure data trigger!!!\n");
-    return;
-  }
-
-  printf("Configured for triggered sampling.\n");
-
-  */

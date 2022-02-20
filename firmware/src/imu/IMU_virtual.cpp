@@ -8,6 +8,11 @@ namespace IMU
 extern bool hasCallback;
 extern std::function<void(imu_data*)> cb;
 
+/**
+ * Virtual data creation for IMU.
+ * Use this to generate fake IMU data for testing purposes or on development
+ * boards.
+ */
 void handle_virtual_data(void)
 {
     while (1) {

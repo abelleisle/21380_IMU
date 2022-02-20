@@ -1,6 +1,9 @@
 #include <term/term.hpp>
 #include <sys/msg.hpp>
 
+/**
+ * Starts the data capture.
+ */
 static int cmd_start(const struct shell *shell, size_t argc, char **argv)
 {
     printf("Staring capture...\n");
@@ -9,6 +12,9 @@ static int cmd_start(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
+/**
+ * Stops the data capture and print results.
+ */
 static int cmd_stop(const struct shell *shell, size_t argc, char **argv)
 {
     printf("Stopping capture...\n");
@@ -17,6 +23,10 @@ static int cmd_stop(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
+/**
+ * Sets the system time.
+ * @warning not fully implemented
+ */
 static int cmd_time(const struct shell *shell, size_t argc, char **argv)
 {
     printf("Sync time\n");
@@ -25,6 +35,9 @@ static int cmd_time(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
+/**
+ * Streams the IMU data as it comes in live.
+ */
 static int cmd_stream(const struct shell *shell, size_t argc, char **argv)
 {
     printf("Data streaming toggled\n");

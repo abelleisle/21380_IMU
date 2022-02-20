@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2020 TDK Invensense
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <device.h>
 #include <drivers/gpio.h>
 #include <drivers/sensor.h>
@@ -23,27 +17,48 @@
 #include <cstring>
 #include <queue>
 
-//const unsigned int max_readings = 512;
-//std::queue<IMU::imu_data> imuData;
-//std::queue<IMU::imu_data> tmpData; /**< This is used while BLE transfer is occurring */
+/**
+ * TODO: remove global variables
+ * TODO: change IMU callbacks to class
+ * TODO: change BLE callbacks to class
+ */
 
-static_queue<IMU::imu_data, 512> imuData;
+/*******************************************************************************
+*                       GLOBALS (EWWWWWWWW MUST REMOVE)                       *
+*******************************************************************************/
 
-bool running = false;
-bool streaming = false;
+static_queue<IMU::imu_data, 512> imuData; /**< IMU data storage queue. */
+
+/* Debug state modification */
+bool running = true;    /**< Whether or not IMU data is recorded */
+bool streaming = false; /**< Print IMU recording to shell */
 
 /*******************************************************************************
 *                                BT CALLBACKS                                 *
 *******************************************************************************/
 
+/**
+ * Current BLE state
+ */
 enum BLE_State_t {
     SEND_SIZE,
     SEND_PACKET,
     SEND_EMPTY,
 } ble_state;
 
-uint32_t ble_size;
+uint32_t ble_size; /**< How many IMU packets are available to send */
 
+/**
+ * Function to send data to master.
+ *
+ * @param[in] conn current BLE connection
+ * @param[in] attr BLE attribute being written to
+ * @param[out] buf the buffer to write data to
+ * @param[in] len how many bytes the master requested
+ * @param[in] offset data offset in 'buf'
+ *
+ * @return How many bytes were written to the master
+ */
 ssize_t imu_data_send(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                     void *buf, uint16_t len, uint8_t offset)
 {
@@ -76,38 +91,48 @@ ssize_t imu_data_send(struct bt_conn *conn, const struct bt_gatt_attr *attr,
         sz =  bt_gatt_attr_read(conn, attr, buf, len, offset, 0, 1);
     }
 
-    /* if (len == 4) { */
-    /* // Send the size of the queue */
-    /*     uint32_t size = imuData.size(); */
-    /*     return bt_gatt_attr_read(conn, attr, buf, len, offset, (void*)&size, sizeof(size)); */
-    /* } else if (len == sizeof(IMU::imu_data)) { */
-    /* // Send the the front IMU data */
-    /*     if (imuData.size()) { */
-    /*         IMU::imu_data data = imuData.front(); */
-    /*         imuData.pop(); */
-    /*         return bt_gatt_attr_read(conn, attr, buf, len, offset, (void*)&data, sizeof(data)); */
-    /*     } else { */
-    /*         return bt_gatt_attr_read(conn, attr, buf, len, offset, 0, 1); */
-    /*     } */
-    /* } */
-
     return sz;
 }
 
+/**
+ * BLE connection callback
+ *
+ * @param[in] conn current BLE connection
+ * @param[in] err to propagate, currently not handled
+ */
 void ble_connect(struct bt_conn* conn, uint8_t err)
 {
     ble_state = SEND_SIZE;
 }
 
+/**
+ * BLE disconnect callback
+ *
+ * @param[in] conn current BLE connection
+ * @param[in] err to propagate, currently not handled
+ */
 void ble_disconnect(struct bt_conn* conn, uint8_t reason)
 {
     ble_state = SEND_SIZE;
 }
 
+// BLE callbacks
+BLE::Callback_t BLE_Callbacks = {
+    .send       = imu_data_send,
+    .recv       = nullptr,
+    .connect    = ble_connect,
+    .disconnect = ble_disconnect
+};
+
 /*******************************************************************************
 *                                IMU FUNCTIONS                                *
 *******************************************************************************/
 
+/**
+ * Called whenever IMU data is recorded.
+ *
+ * @param[in] imu The data that was recorded.
+ */
 void imu_callback(IMU::imu_data* imu)
 {
     if (streaming)
@@ -115,29 +140,15 @@ void imu_callback(IMU::imu_data* imu)
 
     if (!running) return; // Only do this stuff if the data is running
 
-    /*
-    if (!BLE::connected()) {
-    // No BLE Connection
-        for (unsigned int i = 0; i < tmpData.size() && imuData.size() < max_readings; i++) {
-            IMU::imu_data tmp = tmpData.front();
-            imuData.push(tmp);
-            tmpData.pop();
-        }
-
-        if (imuData.size() >= max_readings) 
-            imuData.pop();
-        imuData.push(*imu);
-    } else {
-    // BLE Connection - write to temp storage
-        tmpData.push(*imu);
-    }
-    */
-
     imuData.push(*imu);
 
-    //BLE::setAdData(imuData.size());
+    BLE::setAdData(imuData.size());
 }
 
+/**
+ * Empties IMU queue and prints all data to shell.
+ * @warning should only be used in debug mode
+ */
 void imu_dump_to_term(void)
 {
     bool full = (imuData.size() == imuData.max_size());
@@ -160,6 +171,11 @@ void imu_dump_to_term(void)
 *                                STATE MACHINE                                *
 *******************************************************************************/
 
+/**
+ * Main state machine.
+ *
+ * Looped forever. As of now this is only used for debug state selection.
+ */
 void stateMachine(void)
 {
     sys::msg::MsgData msg = sys::msg::receive();
@@ -186,19 +202,19 @@ void stateMachine(void)
 *                                    MAIN                                     *
 *******************************************************************************/
 
-BLE::Callback_t BLE_Callbacks = {
-    .send       = imu_data_send,
-    .recv       = nullptr,
-    .connect    = nullptr,
-    .disconnect = nullptr
-};
-
+/**
+ * main.
+ * Firmware entry point.
+ */
 void main(void)
 {
-    BLE::init(&BLE_Callbacks);
+    BLE::init(&BLE_Callbacks); // Initialize the BLE system
+
     #if defined(invensense_icm42688)
+        // Hardware IMU
         IMU::init(DT_LABEL(DT_INST(0, invensense_icm42688)), imu_callback);
     #else
+        // Software IMU
         IMU::init(nullptr, imu_callback);
     #endif
 

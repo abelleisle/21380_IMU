@@ -48,7 +48,11 @@ namespace BLE
         BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
     };
 
-    Callback_t *callbacks;
+    Callback_t *callbacks; // Private callbacks
+
+    /**************************************************************************
+    *                                PREDEFS                                 *
+    **************************************************************************/
 
     static void ready_cb(int err);
 
@@ -59,8 +63,6 @@ namespace BLE
                             const void *buf, uint16_t len, uint16_t offset, uint8_t flags);
     static ssize_t read_cb (struct bt_conn *conn, const struct bt_gatt_attr *attr,
                             void *buf, uint16_t len, uint16_t offset);
-
-    bool _connected = false;
 
     /**************************************************************************
     *                          SERVICE DECLARATIONS                          *
@@ -109,41 +111,56 @@ namespace BLE
     *                               FUNCTIONS                                *
     **************************************************************************/
 
+    /**
+     * Sets the power of the BLE transmission signal.
+     * WILL INCREASE POWER USAGE.
+     *
+     * @warning Untested
+     */
     static void set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl)
     {
-/*         struct bt_hci_cp_vs_write_tx_power_level *cp; */
-/*         struct bt_hci_rp_vs_write_tx_power_level *rp; */
-/*         struct net_buf *buf, *rsp = NULL; */
-/*         int err; */
-/*  */
-/*         buf = bt_hci_cmd_create(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, */
-/*                     sizeof(*cp)); */
-/*         if (!buf) { */
-/*             printk("Unable to allocate command buffer\n"); */
-/*             return; */
-/*         } */
-/*  */
-/*         cp = net_buf_add(buf, sizeof(*cp)); */
-/*         cp->handle = sys_cpu_to_le16(handle); */
-/*         cp->handle_type = handle_type; */
-/*         cp->tx_power_level = tx_pwr_lvl; */
-/*  */
-/*         err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, */
-/*                     buf, &rsp); */
-/*         if (err) { */
-/*             uint8_t reason = rsp ? */
-/*                 ((struct bt_hci_rp_vs_write_tx_power_level *) */
-/*                 rsp->data)->status : 0; */
-/*             printk("Set Tx power err: %d reason 0x%02x\n", err, reason); */
-/*             return; */
-/*         } */
-/*  */
-/*         rp = (void *)rsp->data; */
-/*         printk("Actual Tx Power: %d\n", rp->selected_tx_power); */
-/*  */
-/*         net_buf_unref(rsp); */
+        /*
+        struct bt_hci_cp_vs_write_tx_power_level *cp;
+        struct bt_hci_rp_vs_write_tx_power_level *rp;
+        struct net_buf *buf, *rsp = NULL;
+        int err;
+
+        buf = bt_hci_cmd_create(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL,
+                    sizeof(*cp));
+        if (!buf) {
+            printk("Unable to allocate command buffer\n");
+            return;
+        }
+
+        cp = net_buf_add(buf, sizeof(*cp));
+        cp->handle = sys_cpu_to_le16(handle);
+        cp->handle_type = handle_type;
+        cp->tx_power_level = tx_pwr_lvl;
+
+        err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL,
+                    buf, &rsp);
+        if (err) {
+            uint8_t reason = rsp ?
+                ((struct bt_hci_rp_vs_write_tx_power_level *)
+                rsp->data)->status : 0;
+            printk("Set Tx power err: %d reason 0x%02x\n", err, reason);
+            return;
+        }
+
+        rp = (void *)rsp->data;
+        printk("Actual Tx Power: %d\n", rp->selected_tx_power);
+
+        net_buf_unref(rsp);
+        */
     }
 
+    /**
+     * Sets the advertisement data of the Bluetooth radio.
+     * This updates the advertising data to set the number of packets in the
+     * data queue.
+     *
+     * @param[in] data the number of movement packets in the data queue
+     */
     void setAdData(uint32_t data)
     {
         ad[3] = bt_data{.type = BT_DATA_SVC_DATA32,
@@ -158,6 +175,12 @@ namespace BLE
         }
     }
 
+    /**
+     * Bluetooth initialization.
+     *
+     * @param[in] cb_struct Callbacks that will be used for Bluetooth operation
+     * @return Error state, 0 is successful.
+     */
     int init(Callback_t *cb_struct)
     {
         int err;
@@ -173,7 +196,6 @@ namespace BLE
         }
 
         set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, 0, 0);
-        set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, 0, 0);
 
         callbacks = cb_struct;
 
@@ -185,7 +207,7 @@ namespace BLE
      * Once BLE is enabled, this function is called to perform BLE post-startup
      * routine.
      *
-     * @param[int] err Any error codes that occurred during BLE startup
+     * @param[in] err Any error codes that occurred during BLE startup
      */
     static void ready_cb(int err)
     {
@@ -230,66 +252,22 @@ namespace BLE
         printk("Beacon started, advertising as %s\n", addr_s);
     }
 
-    bool connected()
-    {
-        return _connected;
-    }
-
     /**************************************************************************
     *                               CALLBACKS                                *
     **************************************************************************/
 
-    static void print_conn_info(struct bt_conn *conn)
-    {
-        struct bt_conn_info info;
-        int err = bt_conn_get_info(conn, &info);
-        if (err)
-        {
-            printk("Could not get connection information!\n");
-            return;
-        }
-        printk("Connection Information:\n");
-        printk("* Role: ");
-        if (info.role == BT_CONN_ROLE_PERIPHERAL)
-            printk("Master.\n");
-        else
-            printk("Slave.\n");
-        if(info.type & BT_CONN_TYPE_LE)
-        {
-            printk("* Connection Type: LE\n");
-#if defined(CONFIG_BT_USER_PHY_UPDATE)
-            /* -> bluetooth/gap.h
-            * LE PHY types
-            * enum {
-            * // Convenience macro for when no PHY is set.
-            * BT_GAP_LE_PHY_NONE                    = 0,
-            * // LE 1M PHY
-            * BT_GAP_LE_PHY_1M                      = BIT(0),
-            * //LE 2M PHY
-            * BT_GAP_LE_PHY_2M                      = BIT(1),
-            * // LE Coded PHY
-            * BT_GAP_LE_PHY_CODED                   = BIT(2),
-            * };
-            */
-            const struct bt_conn_le_phy_info *phy_info = info.le.phy;
-            printk("  PHY: TX: 0x%02X, RX: 0x%02X.\n", phy_info->tx_phy, phy_info->rx_phy);
-#endif /* defined(CONFIG_BT_USER_PHY_UPDATE) */
-
-#if defined(CONFIG_BT_USER_DATA_LEN_UPDATE)
-            const struct bt_conn_le_data_len_info *data_len_info = info.le.data_len;
-            printk("  Data Length: TX Max length: %d, TX Max time: %dus, RX Max length: %d, RX Max time: %dus.\n",
-                        data_len_info->tx_max_len, data_len_info->tx_max_time,
-                        data_len_info->rx_max_len, data_len_info->rx_max_time);
-#endif /* defined(CONFIG_BT_USER_DATA_LEN_UPDATE) */
-        }
-    }
-
     static struct bt_conn *default_conn;
     static uint16_t default_conn_handle;
 
+    /**
+     * Connection callback.
+     * Calls when a BLE connection succeeds.
+     *
+     * @param[in] conn the BLE connection state
+     * @param[in] err Previous errors to propagate through
+     */
     static void connected_cb(struct bt_conn *conn, uint8_t err)
     {
-        _connected = true;
         if (err) {
             printk("Connection failed (reason 0x%02x)\n", err);
         } else {
@@ -308,15 +286,34 @@ namespace BLE
             callbacks->connect(conn, err);
     }
 
+    /**
+     * Disconnection callback.
+     * Called when BLE disconnect occurs.
+     *
+     * @param[in] conn the BLE connection state
+     * @param[in] reason Why the disconnect occurred
+     */
     static void disconnected_cb(struct bt_conn *conn, uint8_t reason)
     {    
         printk("Disconnected (reason 0x%02x)\n", reason);
-        _connected = false;
 
         if (callbacks->disconnect != nullptr)
             callbacks->disconnect(conn, reason);
     }
 
+    /**
+     * Write callback.
+     * This happens from the perspective of the master. This is called when the
+     * IMU recieves data.
+     *
+     * @param[in] conn BLE connection state
+     * @param[in] attr the BLE GATT Attribute being written to
+     * @param[in] buf the data that was transferred
+     * @param[in] len how much data was transferred (in bytes)
+     * @param[in] offset the data offset (in bytes)
+     * @param[in] flags BLE attr flags that were set
+     *
+     */
     static ssize_t write_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                             const void *buf, uint16_t len, uint16_t offset, uint8_t flags)
     {
@@ -325,6 +322,19 @@ namespace BLE
         return 0;
     }
 
+    /**
+     * Read callback.
+     * This happens from the perspective of the master. This is called when the
+     * master requests data from the IMU.
+     *
+     * @param[in] conn BLE connection state
+     * @param[in] attr the BLE GATT Attribute being written to
+     * @param[out] buf the data buffer to send the data in
+     * @param[in] len the size of the data requested (in bytes)
+     * @param[in] offset the data offset (in bytes)
+     * @param[in] flags BLE attr flags that were set
+     *
+     */
     static ssize_t read_cb (struct bt_conn *conn, const struct bt_gatt_attr *attr,
                             void *buf, uint16_t len, uint16_t offset)
     {
