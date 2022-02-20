@@ -11,9 +11,9 @@ This firmware is built on top of the Zephyr RTOS.
 
 ## Table of Contents:
 - [Getting Started](#getting-started)
-    - [Andy's Quickstart Guide](#andy’s-quickstart-guide)
+    - [Andy's Quickstart Guide](#andys-quickstart-guide)
     - [Installing Zephyr SDK](#installing-zephyr-sdk)
-    - [Building & Flashing](#building-%26-flashing)
+    - [Building & Flashing](#building--flashing)
 - [Using IMU Firmware](#how-to-use)
     - [Syncing over BLE](#over-ble)
     - [Syncing over Serial](#shell-debugging)
