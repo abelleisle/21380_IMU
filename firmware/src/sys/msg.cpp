@@ -1,6 +1,9 @@
 #include "msg.hpp"
 
 #include <lib/static_queue.h>
+#include <cstdlib>
+#include <cstring>
+#include <utility>
 
 namespace sys { namespace msg {
 

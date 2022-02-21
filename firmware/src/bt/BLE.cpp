@@ -272,7 +272,6 @@ namespace BLE
             printk("Connection failed (reason 0x%02x)\n", err);
         } else {
             printk("Connected\n");
-            print_conn_info(conn);
         }
 
         default_conn = bt_conn_ref(conn);
